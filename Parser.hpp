@@ -81,10 +81,28 @@ public:
 		int endIndex = -1;
 		int startIndex = -1;
 		std::string tempString = source.substr(index);
-		endIndex = tempString.find(')') + 1;
-		startIndex = tempString.find('(');
+		endIndex = (int)tempString.find(')') + 1;
+		startIndex = (int)tempString.find('(');
 		std::string functionInnards = tempString.substr(startIndex, endIndex - startIndex);
 		return functionInnards;
-	};
-
+	}
+    
+    static const std::string remove(std::string source, int startIndex, int endIndex)
+    {
+        std::string returnStr = source.substr(0, startIndex) + source.substr(endIndex);
+        return returnStr;
+    }
+    
+    static const std::string removeAndReplace(std::string source, int startIndex, int endIndex, std::string insert)
+    {
+        std::string returnStr = source.substr(0, startIndex) + insert + source.substr(endIndex);
+        return returnStr;
+    }
+    
+    static const std::string insert(std::string source, int index, std::string insert)
+    {
+        std::string returnStr = source.substr(0, index) + insert + source.substr(index + 1);
+        return returnStr;
+    }
+    
 };

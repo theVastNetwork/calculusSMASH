@@ -70,7 +70,7 @@ bool Equation::checkForMismatchedCharacters(std::string source, const char c1, c
 				}
 			}
 
-			if (startIndex < 0 || endIndex < 0 || startIndex > endIndex)
+			if (startIndex > endIndex)
 			{
 				errorLog += "One or more of the characters couldn't be found.";
 				return true;
@@ -137,7 +137,7 @@ Equation::PairList Equation::makeComponentList(std::string source)
 				pushPair(temp, Equation::Component::VARIABLE, "x");
 			}
 
-			if (list[i] == '+' || list[i] == '-' || list[i] == '//' || list[i] == '*' || list[i] == '%')
+			if (list[i] == '+' || list[i] == '-' || list[i] == '/' || list[i] == '*' || list[i] == '%')
 			{
 				pushPair(temp, Equation::Component::OPERATOR, std::string(1, list[i]));
 			}
@@ -249,7 +249,7 @@ void Equation::printComponentList()
 		counter++;
 	}
 	componentString = temp;
-	printf("%s\n", temp.c_str());
+	printf("%s\n", componentString.c_str());
 }
 
 std::string Equation::getComponentList()
@@ -260,9 +260,53 @@ std::string Equation::getComponentList()
 const std::string Equation::getParsedEquation()
 {
 	std::string code = getComponentList();
-
-
-
+    unsigned int expressionStart = -1;
+    
+    while((expressionStart = (unsigned int)code.find("EXPRESSION")) > 0)
+    {
+        std::string codeSub = code.substr(expressionStart);
+        unsigned int expressionEnd = (unsigned int)codeSub.find("]") + expressionStart;
+        std::string expressionSnippet = code.substr(expressionStart, expressionEnd - expressionStart);
+        
+        char c;
+        unsigned int lastParenthesis = -1;
+        int offsetStart = (unsigned int)expressionSnippet.find("(");
+        
+        if (offsetStart < 0)
+        {
+            offsetStart = 0;
+        }
+        
+        std::string finalizedExpression = code;
+        int firstParenthesis = -1;
+        
+        for (int i = offsetStart + 1; i < expressionSnippet.size(); i++)
+        {
+            c = expressionSnippet.c_str()[i];
+            if (c == '(')
+            {
+                lastParenthesis = i;
+            }
+            
+            if (c == ')')
+            {
+                std::string functionSnippet = expressionSnippet.substr(lastParenthesis, (i + 1) - lastParenthesis);
+                std::string newExpression = "[EXPRESSION : " + functionSnippet + "]";
+                expressionSnippet = Parser::remove(expressionSnippet, lastParenthesis, i + 1);
+                
+                 firstParenthesis = (int)expressionSnippet.find_first_of("(");
+                
+                finalizedExpression = Parser::removeAndReplace(code, expressionStart + (lastParenthesis - 1), expressionStart + i + 1, newExpression);
+                
+                finalizedExpression = Parser::insert(finalizedExpression, expressionStart + (firstParenthesis - 1), " (");
+                
+                printf("%s\n", finalizedExpression.c_str());
+                break;
+            }
+        }
+        break;
+    }
+    
 	return code;
 }
 
